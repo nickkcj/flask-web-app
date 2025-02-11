@@ -37,7 +37,11 @@ def register():
         return redirect(url_for('home_page'))
     return render_template('register.html', title='Register', form=form) #Same thing here, we have access to that form instance
 
-@app.route("/login")
+@app.route("/login", methods=['GET', 'POST'])
 def login():
     form = LoginForm()
+    if form.validate_on_submit():
+        return redirect(url_for('home_page'))
     return render_template('login.html', title='Login', form=form)
+
+
