@@ -1,6 +1,9 @@
-from flask import Flask, render_template, url_for
+from flask import Flask, render_template, url_for, flash, redirect
+from forms import RegistrationForm, LoginForm
 
 app = Flask(__name__)
+
+app.config['SECRET_KEY'] = 'a069dcf1fafbc38d6e69f8aedebd817b'
 
 posts = [
     {
@@ -25,3 +28,16 @@ def home_page():
 @app.route("/about")
 def about_page():
     return render_template('about.html', title='About')
+
+@app.route("/register", methods=['GET', 'POST'])
+def register():
+    form = RegistrationForm()
+    if form.validate_on_submit():
+        flash(f'Account created for {form.username.data}!', 'success') #Warning, messagebox shows in screen
+        return redirect(url_for('home_page'))
+    return render_template('register.html', title='Register', form=form) #Same thing here, we have access to that form instance
+
+@app.route("/login")
+def login():
+    form = LoginForm()
+    return render_template('login.html', title='Login', form=form)
