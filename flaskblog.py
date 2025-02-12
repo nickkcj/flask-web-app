@@ -40,8 +40,13 @@ def register():
 @app.route("/login", methods=['GET', 'POST'])
 def login():
     form = LoginForm()
-    if form.validate_on_submit():
-        return redirect(url_for('home_page'))
+    if form.validate_on_submit(): #Here validates email format, etc...
+        if form.email.data == 'admin@blog.com' and form.password.data == 'password':
+            flash('You have been logged in!', 'success')
+            return redirect(url_for('home_page'))
+        
+        else:
+            flash('Login Unsuccessful. Please check username and password', 'danger') #Danger here triggers a RED message instead of green.
     return render_template('login.html', title='Login', form=form)
 
 
