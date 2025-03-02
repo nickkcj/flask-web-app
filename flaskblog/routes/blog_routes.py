@@ -1,7 +1,9 @@
 from flask import render_template, url_for, flash, redirect, Blueprint
 from flaskblog.forms import RegistrationForm, LoginForm
-
+from flaskblog.models import User, Post
 routes = Blueprint("routes", __name__)
+
+from flaskblog.objects import db, bcrypt
 
 posts = [
     {
@@ -31,8 +33,12 @@ def about_page():
 def register():
     form = RegistrationForm()
     if form.validate_on_submit():
+        hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
+        user = User(username=form.username.data, email=form.email.data, password=hashed_password)
+        db.session.add(user)
+        db.session.commit()
         flash(f'Account created for {form.username.data}!', 'success') #Warning, messagebox shows in screen
-        return redirect(url_for('routes.home_page'))
+        return redirect(url_for('routes.login'))
     return render_template('register.html', title='Register', form=form) #Same thing here, we have access to that form instance
 
 @routes.route("/login", methods=['GET', 'POST'])
