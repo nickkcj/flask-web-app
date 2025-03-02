@@ -1,7 +1,7 @@
 from flask import Flask, render_template, url_for, flash, redirect
 from forms import RegistrationForm, LoginForm
 from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime
+from datetime import datetime, timezone
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'a069dcf1fafbc38d6e69f8aedebd817b'
@@ -22,7 +22,7 @@ class User(db.Model):
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False)
-    date_posted = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(datetime.timezone.utc))
+    date_posted = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
     content = db.Column(db.Text, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     
