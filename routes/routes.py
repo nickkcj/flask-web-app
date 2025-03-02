@@ -1,5 +1,5 @@
 from flask import render_template, url_for, flash, redirect, Blueprint
-from forms import RegistrationForm, LoginForm
+from flaskblog.forms import RegistrationForm, LoginForm
 
 routes = Blueprint("routes", __name__)
 
