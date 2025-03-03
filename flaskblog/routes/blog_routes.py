@@ -1,6 +1,8 @@
 from flask import render_template, url_for, flash, redirect, Blueprint
 from flaskblog.forms import RegistrationForm, LoginForm
 from flaskblog.models import User, Post
+from flask_login import login_user, current_user, logout_user, login_required
+
 routes = Blueprint("routes", __name__)
 
 from flaskblog.objects import db, bcrypt
@@ -31,6 +33,8 @@ def about_page():
 
 @routes.route("/register", methods=['GET', 'POST'])
 def register():
+    if current_user.is_authenticated:
+        return redirect(url_for('routes.home_page'))
     form = RegistrationForm()
     if form.validate_on_submit():
         hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
@@ -43,12 +47,26 @@ def register():
 
 @routes.route("/login", methods=['GET', 'POST'])
 def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('routes.home_page'))
     form = LoginForm()
     if form.validate_on_submit(): #Here validates email format, etc...
-        if form.email.data == 'admin@blog.com' and form.password.data == 'password':
+        user = User.query.filter_by(email=form.email.data).first()
+        if user and bcrypt.check_password_hash(user.password, form.password.data): #Here we check if the user exists and if the password is correct
+            login_user(user, remember=form.remember.data)
             flash('You have been logged in!', 'success')
-            return redirect(url_for('.home_page'))
+            return redirect(url_for('routes.home_page')) #If everything is correct, we redirect to the home page
         
         else:
             flash('Login Unsuccessful. Please check username and password', 'danger') #Danger here triggers a RED message instead of green.
     return render_template('login.html', title='Login', form=form)
+
+@routes.route("/logout")
+def logout():
+    logout_user()
+    return redirect(url_for('routes.home_page'))
+
+@routes.route("/account")
+@login_required
+def account():
+    return render_template('account.html', title='Account') 
