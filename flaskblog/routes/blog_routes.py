@@ -1,5 +1,5 @@
-from flask import render_template, url_for, flash, redirect, Blueprint
-from flaskblog.forms import RegistrationForm, LoginForm
+from flask import render_template, url_for, flash, redirect, Blueprint, request
+from flaskblog.forms import RegistrationForm, LoginForm, UpdateAccountForm
 from flaskblog.models import User, Post
 from flask_login import login_user, current_user, logout_user, login_required
 
@@ -54,8 +54,9 @@ def login():
         user = User.query.filter_by(email=form.email.data).first()
         if user and bcrypt.check_password_hash(user.password, form.password.data): #Here we check if the user exists and if the password is correct
             login_user(user, remember=form.remember.data)
+            next_page = request.args.get('next')
             flash('You have been logged in!', 'success')
-            return redirect(url_for('routes.home_page')) #If everything is correct, we redirect to the home page
+            return redirect(next_page) if next_page else (url_for('routes.home_page')) #If everything is correct, we redirect to the home page
         
         else:
             flash('Login Unsuccessful. Please check username and password', 'danger') #Danger here triggers a RED message instead of green.
@@ -69,4 +70,6 @@ def logout():
 @routes.route("/account")
 @login_required
 def account():
-    return render_template('account.html', title='Account') 
+    form = UpdateAccountForm()
+    image_file = url_for('static', filename='profile_pics/' + current_user.image_file)
+    return render_template('account.html', title='Account', image_file=image_file, form=form) 
