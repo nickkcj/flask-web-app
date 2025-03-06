@@ -9,24 +9,11 @@ routes = Blueprint("routes", __name__)
 
 from flaskblog.objects import db, bcrypt
 
-posts = [
-    {
-        'author': 'Corey Schafer',
-        'title': 'Blog Post 1',
-        'content': 'First Post Content',
-        'date_posted': 'April 20, 2018'
-    },
-    {
-        'author': 'Ana Beatriz',
-        'title': 'Blog Post 2',
-        'content': 'Second Post Content',
-        'date_posted': 'April 15, 2015'
-    }
-]
-
 @routes.route("/")
 @routes.route("/home")
 def home_page():
+    posts = Post.query.all()
+    print(posts)
     return render_template('home.html', posts=posts) #Here we are turning available the posts data to be used in the html file.
 
 @routes.route("/about")
