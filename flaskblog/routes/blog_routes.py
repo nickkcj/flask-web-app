@@ -45,7 +45,7 @@ def login():
             login_user(user, remember=form.remember.data)
             next_page = request.args.get('next')
             flash('You have been logged in!', 'success')
-            return redirect(next_page) if next_page else (url_for('routes.home_page')) #If everything is correct, we redirect to the home page
+            return redirect(url_for('routes.home_page')) #If everything is correct, we redirect to the home page
         
         else:
             flash('Login Unsuccessful. Please check username and password', 'danger') #Danger here triggers a RED message instead of green.
@@ -126,3 +126,15 @@ def update_post(post_id):
         form.content.data = post.content
     return render_template('create_post.html', title='Update Post', 
                            form=form, legend='Update Post')
+
+
+@routes.route("/post/<int:post_id>/delete", methods=['POST'])
+@login_required
+def delete_post(post_id):
+    post = Post.query.get_or_404(post_id)
+    if post.author != current_user:
+        abort(403)
+    db.session.delete(post)
+    db.session.commit()
+    flash('Your post has been deleted!', 'success')
+    return redirect(url_for('routes.home_page'))
