@@ -1,4 +1,4 @@
-from flaskblog.objects import create_app, db
+from objects import create_app
 
 app = create_app()
 

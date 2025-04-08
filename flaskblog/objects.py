@@ -2,6 +2,8 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager
+import os
+
 
 db = SQLAlchemy()
 bcrypt = Bcrypt()
@@ -19,7 +21,7 @@ def create_app():
     login_manager.login_message_category = 'info'
 
 
-    from flaskblog.routes.blog_routes import routes as rt
+    from routes.blog_routes import routes as rt
     app.register_blueprint(rt)
 
     return app

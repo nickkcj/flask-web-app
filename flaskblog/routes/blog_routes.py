@@ -1,13 +1,13 @@
 import secrets, os
 from flask import render_template, url_for, flash, redirect, Blueprint, request, current_app, abort
-from flaskblog.forms import RegistrationForm, LoginForm, UpdateAccountForm, PostForm
-from flaskblog.models import User, Post
+from forms import RegistrationForm, LoginForm, UpdateAccountForm, PostForm, RequestResetForm, ResetPasswordForm
+from models import User, Post
 from flask_login import login_user, current_user, logout_user, login_required
 from PIL import Image
 
 routes = Blueprint("routes", __name__)
 
-from flaskblog.objects import db, bcrypt
+from objects import db, bcrypt
 
 @routes.route("/")
 @routes.route("/home")
@@ -138,3 +138,30 @@ def delete_post(post_id):
     db.session.commit()
     flash('Your post has been deleted!', 'success')
     return redirect(url_for('routes.home_page'))
+
+
+@routes.route("/reset_password", methods=['GET', 'POST'])
+def reset_request():
+    if current_user.is_authenticated:
+        return redirect(url_for('routes.home_page'))
+    form = RequestResetForm()
+    return render_template('reset_request.html', title='Reset Password', form=form)
+
+
+@routes.route("/reset_password/<token>", methods=['GET', 'POST'])
+def reset_token(token):
+    if current_user.is_authenticated:
+        return redirect(url_for('routes.home_page'))
+    
+    user = User.verify_reset_token(token)
+    if user is None:
+        flash('That is an invalid or expired token', 'warning')
+        return redirect(url_for('routes.reset_request'))
+    
+    form = ResetPasswordForm()
+    if form.validate_on_submit():
+        hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
+        user.password = hashed_password
+        db.session.commit()
+        flash('Your password has been updated! You are now able to log in', 'success')
+        return redirect(url_for('routes.login'))
