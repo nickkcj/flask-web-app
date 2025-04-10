@@ -4,10 +4,12 @@ from forms import RegistrationForm, LoginForm, UpdateAccountForm, PostForm, Requ
 from models import User, Post
 from flask_login import login_user, current_user, logout_user, login_required
 from PIL import Image
+from extensions import db, bcrypt
+
 
 routes = Blueprint("routes", __name__)
 
-from objects import db, bcrypt
+
 
 @routes.route("/")
 @routes.route("/home")

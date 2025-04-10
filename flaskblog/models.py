@@ -1,8 +1,7 @@
 from datetime import datetime, timezone
-from objects import db, login_manager
-from main import app
 from flask_login import UserMixin
 from itsdangerous import URLSafeTimedSerializer as Serializer
+from extensions import db, login_manager, app
 
 
 
