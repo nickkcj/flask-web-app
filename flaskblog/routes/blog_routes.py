@@ -4,7 +4,8 @@ from forms import RegistrationForm, LoginForm, UpdateAccountForm, PostForm, Requ
 from models import User, Post
 from flask_login import login_user, current_user, logout_user, login_required
 from PIL import Image
-from extensions import db, bcrypt
+from extensions import db, bcrypt, mail
+from flask_mail import Message
 
 
 routes = Blueprint("routes", __name__)
@@ -16,7 +17,7 @@ routes = Blueprint("routes", __name__)
 def home_page():
     posts = Post.query.all()
     print(posts)
-    return render_template('home.html', posts=posts) #Here we are turning available the posts data to be used in the html file.
+    return render_template('home.html', posts=posts) 
 
 @routes.route("/about")
 def about_page():
@@ -32,9 +33,9 @@ def register():
         user = User(username=form.username.data, email=form.email.data, password=hashed_password)
         db.session.add(user)
         db.session.commit()
-        flash(f'Account created for {form.username.data}!', 'success') #Warning, messagebox shows in screen
+        flash(f'Account created for {form.username.data}!', 'success') 
         return redirect(url_for('routes.login'))
-    return render_template('register.html', title='Register', form=form) #Same thing here, we have access to that form instance
+    return render_template('register.html', title='Register', form=form) 
 
 @routes.route("/login", methods=['GET', 'POST'])
 def login():
@@ -43,11 +44,10 @@ def login():
     form = LoginForm()
     if form.validate_on_submit(): #Here validates email format, etc...
         user = User.query.filter_by(email=form.email.data).first()
-        if user and bcrypt.check_password_hash(user.password, form.password.data): #Here we check if the user exists and if the password is correct
+        if user and bcrypt.check_password_hash(user.password, form.password.data): 
             login_user(user, remember=form.remember.data)
-            next_page = request.args.get('next')
             flash('You have been logged in!', 'success')
-            return redirect(url_for('routes.home_page')) #If everything is correct, we redirect to the home page
+            return redirect(url_for('routes.home_page')) 
         
         else:
             flash('Login Unsuccessful. Please check username and password', 'danger') #Danger here triggers a RED message instead of green.
@@ -142,11 +142,29 @@ def delete_post(post_id):
     return redirect(url_for('routes.home_page'))
 
 
+def send_reset_email(user):
+    token = user.get_reset_token()
+    msg = Message('Password Reset Request', 
+                  sender='noreply@demo.com',
+                  recipients=[user.email])
+    
+    msg.body = f"""To reset your password, visit the following link:
+                {url_for('routes.reset_token', token=token, _external=True)}
+
+If you did not make this request then simply ignore this email and no changes will be made.
+"""
+    mail.send(msg)
+
 @routes.route("/reset_password", methods=['GET', 'POST'])
 def reset_request():
     if current_user.is_authenticated:
         return redirect(url_for('routes.home_page'))
     form = RequestResetForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(email=form.email.data).first()
+        send_reset_email(user)
+        flash('An email has been sent with instructions to reset your password.', 'info')
+        return redirect(url_for('routes.login'))
     return render_template('reset_request.html', title='Reset Password', form=form)
 
 
@@ -167,3 +185,4 @@ def reset_token(token):
         db.session.commit()
         flash('Your password has been updated! You are now able to log in', 'success')
         return redirect(url_for('routes.login'))
+    return render_template('reset_token.html', title='Reset Password', form=form)

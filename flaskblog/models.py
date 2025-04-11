@@ -18,13 +18,13 @@ class User(db.Model, UserMixin):
     password = db.Column(db.String(60), nullable=False)
     posts = db.relationship('Post', backref='author', lazy=True)  
     
-    def get_reset_token(self, expires_sec=1800):
+    def get_reset_token(self):
         s = Serializer(app.config['SECRET_KEY'], salt='password-reset-salt')
-        return s.dumps({'user_id': self.id}, salt='password-reset-salt', expires_in=expires_sec)
+        return s.dumps({'user_id': self.id})
     
     @staticmethod
     def verify_reset_token(token):
-        s = Serializer(app.config['SECRET_KEY'])
+        s = Serializer(app.config['SECRET_KEY'], salt='password-reset-salt')
         try:
             user_id = s.loads(token)['user_id']
         except:
